@@ -118,13 +118,13 @@ if ! shopt -oq posix; then
   fi
 fi
 
-#export EDITOR="code --wait"
-#source ~/.commacd.bash
+export EDITOR="code --wait"
+source ~/.commacd.bash
 
 # start tmux
-#if [ -z $TMUX ]; then
-#    tmux
-#fi
+if [ -z $TMUX ]; then
+    tmux
+fi
 
 # navigate to the sites directory and start the virtual environment
-#cd ~/git/nimbis/sites; workon sites > /dev/null; echo "hello"
+cd ~/git/nimbis/sites; workon sites > /dev/null; echo "hello"
