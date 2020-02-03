@@ -31,3 +31,9 @@ end
 
 # Navigate to working directory
 cd ~/git/nimbis/sites
+
+# Add packer to the PATH
+export PATH="/home/krobbins/packer:$PATH"
+
+# Add sysop scripts to the PATH
+export PATH="/home/krobbins/git/nimbis/sysop/bin:$PATH"
