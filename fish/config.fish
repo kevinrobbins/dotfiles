@@ -28,10 +28,6 @@ if not set -q VIRTUAL_ENV
    vf activate sites
 end
 
-
-# Navigate to working directory
-cd ~/git/nimbis/sites
-
 # Add packer to the PATH
 export PATH="/home/krobbins/packer:$PATH"
 
