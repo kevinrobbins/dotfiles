@@ -12,8 +12,8 @@ function flake8mod
         return 1
     end
 
-    set com "git diff --name-only $argv[1] $argv[2]"
-    set files (eval $com ^&1) #(git diff --name-only $argv[1] $argv[2])
+    set com "git --no-pager log --name-only --pretty=format: $argv[1]..$argv[2]"
+    set files (eval $com ^&1 | sort | uniq)
     if not test $status -eq 0
         echo "
 An error occurred while executing the following command:
@@ -28,7 +28,7 @@ $files
     end
 
     if test (count files) -eq 0
-        echo "There are no differences between the provided commits."
+        echo "No files were changed in the given range of commits."
         return 0
     end
 
