@@ -1,4 +1,4 @@
-function flake8mod
+function flake8-range
     # Will return any flake8 errors for any file modified in the given range of
     # commits
     if not test (count $argv) -eq 2
