@@ -20,9 +20,15 @@ begin
     and tmux new-session -As $SESSION_NAME
 end
 
+# Add my scripts to the path
+export PATH="/home/krobbins/bin:$PATH"
+export PATH="/home/krobbins/bin/scripts:$PATH"
 
 # Add packer to the PATH
 export PATH="/home/krobbins/packer:$PATH"
 
 # Add sysop scripts to the PATH
 export PATH="/home/krobbins/git/nimbis/sysop/bin:$PATH"
+
+# Add ec2_report script to path
+export PATH="/home/krobbins/git/nimbis/ec2-reporting:$PATH"
