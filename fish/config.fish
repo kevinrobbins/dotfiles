@@ -20,10 +20,6 @@ begin
     and tmux new-session -As $SESSION_NAME
 end
 
-# Enable sites virtual environment by default
-if not set -q VIRTUAL_ENV
-   vf activate sites
-end
 
 # Add packer to the PATH
 export PATH="/home/krobbins/packer:$PATH"
