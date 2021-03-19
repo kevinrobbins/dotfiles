@@ -5,7 +5,7 @@ set fish_function_path $fish_function_path "$REPOSITORY_ROOT/powerline/bindings/
 
 # make vim the default editor
 if not set -q EDITOR
-  export EDITOR="vim"
+    export EDITOR="vim"
 end
 
 # start vim in INSERT mode
@@ -16,8 +16,8 @@ alias vim "vim +star"
 # start tmux
 set SESSION_NAME default
 begin
-   not set -q TMUX
-   and tmux new-session -As $SESSION_NAME
+    not set -q TMUX
+    and tmux new-session -As $SESSION_NAME
 end
 
 # Enable sites virtual environment by default
