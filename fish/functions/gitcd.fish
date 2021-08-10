@@ -18,7 +18,6 @@ function gitcd --argument-names repo_name repo_root --description "Navigate to s
     end
 
     if ! test -n "$argv"
-        echo "no repo provided. switching to repo root"
         cd $repo_root
         return 0
     end
