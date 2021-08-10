@@ -5,7 +5,7 @@
 #    ~/git/ default
 
 function gitcd --argument-names repo_name repo_root --description "Navigate to specified git repository"
-    argparse --min-args 1 --max-args 1 'r/repo_root=' -- $argv
+    argparse --max-args 1 'r/repo_root=' -- $argv
 
     set repo $argv
     set max_depth 6
@@ -15,6 +15,12 @@ function gitcd --argument-names repo_name repo_root --description "Navigate to s
         set repo_root $REPO_ROOT
     else
         set repo_root ~/git/
+    end
+
+    if ! test -n "$argv"
+        echo "no repo provided. switching to repo root"
+        cd $repo_root
+        return 0
     end
 
     cd (find $repo_root -maxdepth $max_depth -name $repo -exec test -d {}/.git \; -print -prune -quit)
