@@ -35,3 +35,8 @@ export PATH="/home/krobbins/git/nimbis/ec2-reporting:$PATH"
 
 #spacefish config
 set SPACEFISH_DOCKER_SHOW false
+
+# Auto-enable pyenv and pyenv-virtualenv
+status is-interactive; and pyenv init --path | source
+pyenv init - | source
+status --is-interactive; and pyenv virtualenv-init - | source
