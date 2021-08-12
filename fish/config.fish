@@ -13,11 +13,16 @@ alias vim "vim +star"
 
 ##### start up #####
 
-# start tmux
-set SESSION_NAME default
-begin
-    not set -q TMUX
-    and tmux new-session -As $SESSION_NAME
+# start tmux, but not if the terminal is started from vscode.  If started from
+# vscode, it will attach to the same session which causes issues.  I could
+# start a different session for vscode, but rarely use the vscode terminal.
+# This is mostly so debugging doesn't hijack my tmux session.
+if [ "$TERM_PROGRAM" != "vscode" ]
+	set SESSION_NAME default
+	begin
+	    not set -q TMUX
+	    and tmux new-session -As $SESSION_NAME
+	end
 end
 
 # Add my scripts to the path
