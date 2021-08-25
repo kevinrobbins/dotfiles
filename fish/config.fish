@@ -38,6 +38,8 @@ export PATH="/home/krobbins/git/nimbis/sysop/bin:$PATH"
 # Add ec2_report script to path
 export PATH="/home/krobbins/git/nimbis/ec2-reporting:$PATH"
 
+export DOCKER_COMPOSE=docker-compose
+
 #spacefish config
 set SPACEFISH_DOCKER_SHOW false
 
