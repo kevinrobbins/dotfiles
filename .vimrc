@@ -14,3 +14,5 @@ set number
 set mouse=a
 
 set history=1000
+
+set textwidth=79
