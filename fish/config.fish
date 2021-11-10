@@ -17,7 +17,14 @@ alias vim "vim +star"
 # vscode, it will attach to the same session which causes issues.  I could
 # start a different session for vscode, but rarely use the vscode terminal.
 # This is mostly so debugging doesn't hijack my tmux session.
-if [ "$RUNNING_ON_GK" != "true" -a "$TERM_PROGRAM" != "vscode" ]
+
+if [ "$RUNNING_ON_GK" = "true" ] # For GitKraken, start a new session
+	set SESSION_NAME gk
+	begin
+	    not set -q TMUX
+	    and tmux new-session -As $SESSION_NAME
+	end
+else if [ "$TERM_PROGRAM" != "vscode" ]
 	set SESSION_NAME default
 	begin
 	    not set -q TMUX
