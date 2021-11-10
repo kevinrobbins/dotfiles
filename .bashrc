@@ -126,5 +126,3 @@ if [ -z $TMUX ]; then
     tmux
 fi
 
-# navigate to the sites directory and start the virtual environment
-cd ~/git/nimbis/sites;source ~/.virtualenvs/sites/bin/activate;
