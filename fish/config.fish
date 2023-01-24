@@ -49,3 +49,7 @@ set SPACEFISH_DOCKER_SHOW false
 
 # export secrets. Done this way to avoid committing secrets to source control.
 source ~/secrets
+
+# initialize starship
+# https://github.com/starship/starship
+starship init fish | source
