@@ -8,9 +8,6 @@ if not set -q EDITOR
     export EDITOR="vim"
 end
 
-# start vim in INSERT mode
-alias vim "vim +star"
-
 ##### start up #####
 
 # start tmux, but not if the terminal is started from vscode.  If started from
