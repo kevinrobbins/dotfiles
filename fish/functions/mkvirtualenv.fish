@@ -20,7 +20,7 @@ function mkvirtualenv --description "Create a virtualenv"
         set -f location "."
     else
         # Fall back to default
-        set -f location ~/.virtual_envs
+        set -f location ~/.virtualenvs
     end
 
     # Attempt to create virtual environment
