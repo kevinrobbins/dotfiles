@@ -49,7 +49,3 @@ set SPACEFISH_DOCKER_SHOW false
 
 # export secrets. Done this way to avoid committing secrets to source control.
 source ~/secrets
-
-# override dircolors defaults because OTHER_WRITABLE default colors are
-# impossible to read
-eval (dircolors -c ~/.dircolors)
