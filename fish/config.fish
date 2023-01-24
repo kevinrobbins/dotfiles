@@ -29,24 +29,6 @@ else if [ "$TERM_PROGRAM" != "vscode" ]
 	end
 end
 
-# Add my scripts to the path
-export PATH="/home/krobbins/bin:$PATH"
-export PATH="/home/krobbins/bin/scripts:$PATH"
-
-# Add packer to the PATH
-export PATH="/home/krobbins/packer:$PATH"
-
-# Add sysop scripts to the PATH
-export PATH="/home/krobbins/git/nimbis/sysop/bin:$PATH"
-
-# Add ec2_report script to path
-export PATH="/home/krobbins/git/nimbis/ec2-reporting:$PATH"
-
-export DOCKER_COMPOSE=docker-compose
-
-#spacefish config
-set SPACEFISH_DOCKER_SHOW false
-
 # export secrets. Done this way to avoid committing secrets to source control.
 source ~/secrets
 
