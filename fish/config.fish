@@ -1,8 +1,3 @@
-# powerline
-set REPOSITORY_ROOT "/home/krobbins/.local/lib/python2.7/site-packages"
-set fish_function_path $fish_function_path "$REPOSITORY_ROOT/powerline/bindings/fish"
-#powerline-setup
-
 # make vim the default editor
 if not set -q EDITOR
     export EDITOR="vim"
