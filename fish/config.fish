@@ -50,11 +50,6 @@ set SPACEFISH_DOCKER_SHOW false
 # export secrets. Done this way to avoid committing secrets to source control.
 source ~/secrets
 
-# Auto-enable pyenv and pyenv-virtualenv
-status is-interactive; and pyenv init --path | source
-pyenv init - | source
-status --is-interactive; and pyenv virtualenv-init - | source
-
 # override dircolors defaults because OTHER_WRITABLE default colors are
 # impossible to read
 eval (dircolors -c ~/.dircolors)
