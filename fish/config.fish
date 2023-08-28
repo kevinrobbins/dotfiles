@@ -25,6 +25,9 @@ abbr --add dcp docker compose --profile
 # ls
 abbr --add ls ls -al
 
+# aws
+abbr --add ssm aws ssm start-session --target
+
 ## Config ##
 
 # make vim the default editor
