@@ -4,7 +4,7 @@ import argparse
 from collections import namedtuple
 import dataclasses
 import os
-import requests
+import requests  # TODO: replace with http.client or urllib
 import shutil
 import subprocess
 import typing as t
