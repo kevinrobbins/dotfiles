@@ -244,12 +244,12 @@ def get_aws_config(profile: str, config_name: str) -> str:
     value = output.stdout.decode('utf-8').strip()
     return value
 
-
 def update_tfe_credentials(
     tf_api_token: str,
     workspace_name: str,
     aws_profile: str,
-    okta_profile: str
+    okta_profile: str,
+    prompt_for_confirmation: bool = True
 ):
     # Retrieve AWS credentials from local config
     try:
@@ -298,22 +298,48 @@ def update_tfe_credentials(
     for aws_var in aws_credential_defaults:
         for tf_var in tfe.variables:
             if aws_var.key == tf_var.key:
+                # Variable exists, so set id so we know to update the variable
+                # instead of creating it.
                 aws_var.id = tf_var.id
                 break
 
-    for aws_var in aws_credential_defaults:
-        if aws_var.id:
-            tfe.update_variable(aws_var.id, attributes={'value': aws_var.value})
-            print(f"Updated {aws_var.key}.")
+    user_confirmed = True
 
-        else:
-            print(f"Created {aws_var.key}.")
-            tfe.create_variable(
-                key=aws_var.key,
-                value=aws_var.value,
-                category=aws_var.category,
-                description=aws_var.description,
-                sensitive=aws_var.sensitive)
+    # Tell user what will happen and ask for confirmation.
+    if prompt_for_confirmation:
+        msg = (f"The following operations will be applied to the '{tfe.workspace_name}' workspace "
+               f"in the '{tfe.organization}' organization:\n")
+        for aws_var in aws_credential_defaults:
+            if aws_var.id:
+                msg += f"Update {aws_var.key}\n"
+
+            else:
+                msg += f"Create {aws_var.key}\n"
+
+        msg += "\nConfirm? [Y/n]: "
+
+        response = input(msg)
+
+        if response.lower() not in ['y', 'yes']:
+            user_confirmed = False
+            print("\nCanceling operations.")
+
+    if user_confirmed:
+        print("")  # Add newline for formatting purposes
+
+        for aws_var in aws_credential_defaults:
+            if aws_var.id:
+                tfe.update_variable(aws_var.id, attributes={'value': aws_var.value})
+                print(f"Updated {aws_var.key}.")
+
+            else:
+                print(f"Created {aws_var.key}.")
+                tfe.create_variable(
+                    key=aws_var.key,
+                    value=aws_var.value,
+                    category=aws_var.category,
+                    description=aws_var.description,
+                    sensitive=aws_var.sensitive)
 
 def refresh_aws_credentials(okta_profile, aws_profile):
     try:
@@ -348,6 +374,10 @@ def cli():
         '--tf-api-token', '-t',
         default=os.getenv('TF_API_TOKEN'),
         help='TFE personal access token for authenticating with the TFE API.')
+    parser.add_argument(
+        '--yes', '-y',
+        action='store_true',
+        help='If present, credentials will be updated without asking for confirmation')
 
     args = parser.parse_args()
     if not args.tf_api_token:
@@ -374,7 +404,8 @@ def cli():
         tf_api_token=args.tf_api_token,
         workspace_name=args.workspace_name,
         aws_profile=args.aws_profile,
-        okta_profile=args.okta_profile)
+        okta_profile=args.okta_profile,
+        prompt_for_confirmation=not args.yes)
 
 if __name__ == '__main__':
     try:
