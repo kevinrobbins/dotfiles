@@ -337,9 +337,9 @@ def cli():
               'credentials are present for the specified AWS Profile or if '
               'the credentials have expired.'))
     parser.add_argument(
-        '--force', '-f',
+        '--no-refresh',
         action='store_true',
-        help='Create or update AWS credentials variables even if credentials cannot be validated.')
+        help='Create or update AWS credentials variables even if credentials cannot be refreshed.')
     parser.add_argument(
         '--aws-profile', '-p',
         default=os.getenv('AWS_PROFILE'),
@@ -358,10 +358,14 @@ def cli():
         print("--aws_profile or AWS_PROFILE env must be set.")
         return
 
-    if not args.force:
+    if not args.no_refresh:
         if not shutil.which('okta-awscli'):
             print("okta-awscli not found. To refresh AWS credentials, install okta-awscli. To "
-                  "proceed without refreshing credentials, pass --force.")
+                  "proceed without refreshing credentials, pass --no_refresh.")
+            return
+
+        if not args.okta_profile:
+            print("--okta-profile is required if --no_refresh is not present.")
             return
 
         refresh_aws_credentials(args.okta_profile, args.aws_profile)
