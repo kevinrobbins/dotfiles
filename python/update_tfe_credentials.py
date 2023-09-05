@@ -108,7 +108,8 @@ class TFEClient:
             params={f'search[name]': self.workspace_name})
 
         if not response.ok:
-            raise TFEClientResponseError(response, f"Unable to get list workspaces in \"{self.organization}\"")
+            raise TFEClientResponseError(
+                response, f"Unable to get list workspaces in '{self.organization}'")
 
         self.workspace_id = response.json()['data'][0]['id']
 
@@ -143,7 +144,10 @@ class TFEClient:
         # https://developer.hashicorp.com/terraform/cloud-docs/api-docs/workspace-variables#list-variables
         response = self._session.get(f'https://terraform.nimbis.io/api/v2/workspaces/{self.workspace_id}/vars')
         if not response.ok:
-            raise TFEClientResponseError(response, f"Unable to get list of variables in workspace '{self.workspace_name}' in '{self.organization}'")
+            msg = (
+                f"Unable to get list of variables in workspace '{self.workspace_name}' in "
+                f"'{self.organization}'")
+            raise TFEClientResponseError(response, msg)
 
         self._variables_raw = response.json()
 
@@ -183,7 +187,10 @@ class TFEClient:
             json=payload)
 
         if not response.ok:
-            raise TFEClientResponseError(response, f"Unable to get create workspace variable '{key}' in {self.organization}/{self.workspace_name}")
+            msg = (
+                f"Unable to get create workspace variable '{key}' in "
+                f"{self.organization}/{self.workspace_name}")
+            raise TFEClientResponseError(response, msg)
 
         return TFEVariable.from_dict(response.json()['data'])
 
@@ -217,10 +224,10 @@ class TFEClient:
             json=payload)
 
         if not response.ok:
-            raise TFEClientResponseError(
-                response,
+            msg = (
                 f"Unable to update workspace variable '{id}' in "
                 f"'{self.organization}/{self.workspace_name}'")
+            raise TFEClientResponseError(response, msg)
 
         return TFEVariable.from_dict(response.json()['data'])
 
