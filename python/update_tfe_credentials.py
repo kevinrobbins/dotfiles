@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-from collections import namedtuple
 import dataclasses
 import os
 import requests  # TODO: replace with http.client or urllib
@@ -11,6 +10,7 @@ import typing as t
 
 
 AwsCredential = t.Literal['aws_access_key_id', 'aws_secret_access_key', 'aws_session_token']
+
 
 class CLIException(Exception):
     pass
@@ -23,7 +23,8 @@ class TFEClientError(Exception):
 class TFEClientResponseError(Exception):
     def __init__(self, response: requests.Response, message: str):
         super().__init__(
-            f"TFE Client Error: {message}\nResponse code: {response.status_code}\nError: {response.text}")
+            f"TFE Client Error: {message}\nResponse code: {response.status_code}\nError: "
+            f"{response.text}")
 
 
 class TFEVariableValidationError(Exception):
@@ -98,14 +99,13 @@ class TFEClient:
 
         self._get_workspace()
 
-
     def __del__(self):
         self._session.close()
 
     def _get_workspace(self):
         response = self._session.get(
             url=f'https://terraform.nimbis.io/api/v2/organizations/{self.organization}/workspaces',
-            params={f'search[name]': self.workspace_name})
+            params={'search[name]': self.workspace_name})
 
         if not response.ok:
             raise TFEClientResponseError(
@@ -142,7 +142,8 @@ class TFEClient:
         Get all variables in the TFEClient's workspace.
         """
         # https://developer.hashicorp.com/terraform/cloud-docs/api-docs/workspace-variables#list-variables
-        response = self._session.get(f'https://terraform.nimbis.io/api/v2/workspaces/{self.workspace_id}/vars')
+        response = self._session.get(
+            f'https://terraform.nimbis.io/api/v2/workspaces/{self.workspace_id}/vars')
         if not response.ok:
             msg = (
                 f"Unable to get list of variables in workspace '{self.workspace_name}' in "
@@ -170,7 +171,7 @@ class TFEClient:
         """
         payload = {
             "data": {
-                "type":"vars",
+                "type": "vars",
                 "attributes": {
                     "key": key,
                     "value": value,
@@ -214,7 +215,7 @@ class TFEClient:
         payload = {
             "data": {
                 "id": id,
-                "type":"vars",
+                "type": "vars",
                 "attributes": attributes
             }
         }
@@ -231,6 +232,7 @@ class TFEClient:
 
         return TFEVariable.from_dict(response.json()['data'])
 
+
 def get_aws_config(profile: str, config_name: str) -> str:
     try:
         output = subprocess.run(
@@ -243,6 +245,7 @@ def get_aws_config(profile: str, config_name: str) -> str:
 
     value = output.stdout.decode('utf-8').strip()
     return value
+
 
 def update_tfe_credentials(
     tf_api_token: str,
@@ -341,6 +344,7 @@ def update_tfe_credentials(
                     description=aws_var.description,
                     sensitive=aws_var.sensitive)
 
+
 def refresh_aws_credentials(okta_profile, aws_profile):
     try:
         subprocess.run(
@@ -350,6 +354,7 @@ def refresh_aws_credentials(okta_profile, aws_profile):
 
     except subprocess.CalledProcessError as e:
         raise CLIException(f"AWS CLI error: {e.stderr.decode('utf-8')}") from e
+
 
 def cli():
     parser = argparse.ArgumentParser()
@@ -406,6 +411,7 @@ def cli():
         aws_profile=args.aws_profile,
         okta_profile=args.okta_profile,
         prompt_for_confirmation=not args.yes)
+
 
 if __name__ == '__main__':
     try:
