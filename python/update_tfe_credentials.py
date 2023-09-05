@@ -109,7 +109,7 @@ class TFEClient:
 
         if not response.ok:
             raise TFEClientResponseError(
-                response, f"Unable to get list workspaces in '{self.organization}'")
+                response, f"Unable to list workspaces in '{self.organization}'")
 
         self.workspace_id = response.json()['data'][0]['id']
 
@@ -396,7 +396,7 @@ def cli():
     if not args.no_refresh:
         if not shutil.which('okta-awscli'):
             print("okta-awscli not found. To refresh AWS credentials, install okta-awscli. To "
-                  "proceed without refreshing credentials, pass --no_refresh.")
+                  "proceed without refreshing credentials, pass --no-refresh.")
             return
 
         if not args.okta_profile:
