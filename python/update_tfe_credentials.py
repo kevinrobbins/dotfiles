@@ -365,7 +365,7 @@ def cli():
     parser.add_argument(
         '--no-refresh',
         action='store_true',
-        help='Create or update AWS credentials variables even if credentials cannot be refreshed.')
+        help='Create or update AWS credentials variables without refreshing them first.')
     parser.add_argument(
         '--aws-profile', '-p',
         default=os.getenv('AWS_PROFILE'),
