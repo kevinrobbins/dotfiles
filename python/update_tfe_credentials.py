@@ -386,11 +386,11 @@ def cli():
 
     args = parser.parse_args()
     if not args.tf_api_token:
-        print("--tf_api_token or TF_API_TOKEN env must be set.")
+        print("--tf-api-token or TF_API_TOKEN env must be set.")
         return
 
     if not args.aws_profile:
-        print("--aws_profile or AWS_PROFILE env must be set.")
+        print("--aws-profile or AWS_PROFILE env must be set.")
         return
 
     if not args.no_refresh:
@@ -400,7 +400,7 @@ def cli():
             return
 
         if not args.okta_profile:
-            print("--okta-profile is required if --no_refresh is not present.")
+            print("--okta-profile is required if --no-refresh is not present.")
             return
 
         refresh_aws_credentials(args.okta_profile, args.aws_profile)
