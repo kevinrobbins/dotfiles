@@ -14,7 +14,7 @@ function gitcd --argument-names repo_name repo_root --description "Navigate to s
     else
         set -f repo_root (load_config --name gitcd_repo_root --default ~/git)
         if test -z "$repo_root"
-            echo "repo_root not fdound"
+            echo "repo_root not found"
         end
     end
 
@@ -23,7 +23,7 @@ function gitcd --argument-names repo_name repo_root --description "Navigate to s
         return
     end
 
-    set -f dir (find $repo_root -maxdepth $max_depth -name $repo -exec test -d {}/.git \; -print -prune -quit)
+    set -f dir (find $repo_root -maxdepth $max_depth -name $repo -exec /bin/test -d {}/.git \; -print -prune -quit)
     if test -n "$dir"
         cd $dir
         return
