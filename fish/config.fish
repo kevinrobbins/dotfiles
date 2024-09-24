@@ -17,6 +17,8 @@ abbr --add gitrb git rebase
 abbr --add gitrbi git rebase --interactive
 abbr --add gitdu git diff @{u}
 abbr --add gitg git log --graph --oneline --all
+abbr --add gitlo git log --oneline
+abbr --add gitcp git cherry-pick
 
 # Docker compose
 abbr --add dc docker compose
