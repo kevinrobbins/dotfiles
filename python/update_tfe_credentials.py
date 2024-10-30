@@ -266,6 +266,7 @@ def get_aws_config(profile: str, config_name: str) -> str:
 
 def update_tfe_credentials(
     tf_api_token: str,
+    organization: str,
     workspace_name: str,
     aws_profile: str,
     prompt_for_confirmation: bool = True,
@@ -307,7 +308,7 @@ def update_tfe_credentials(
 
     # Hardcode nimbis-dev to prevent accidental use on production sites.
     tfe = TFEClient(
-        organization="nimbis-dev", workspace_name=workspace_name, api_token=tf_api_token
+        organization=organization, workspace_name=workspace_name, api_token=tf_api_token
     )
 
     # Determine which variables already exist. Existing variables will need to
@@ -366,7 +367,10 @@ def update_tfe_credentials(
 def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--workspace-name", "-w", required=True, help="The TFE workspace to update."
+        "--organization",
+        "-o",
+        required=True,
+        help="The TFE organization the workspace belongs to.",
     )
     parser.add_argument(
         "--workspace-name", "-w", required=True, help="The TFE workspace to update."
@@ -401,6 +405,7 @@ def cli():
 
     update_tfe_credentials(
         tf_api_token=args.tf_api_token,
+        organization=args.organization,
         workspace_name=args.workspace_name,
         aws_profile=args.aws_profile,
         prompt_for_confirmation=not args.yes,
