@@ -268,7 +268,6 @@ def update_tfe_credentials(
     tf_api_token: str,
     workspace_name: str,
     aws_profile: str,
-    okta_profile: str,
     prompt_for_confirmation: bool = True,
 ):
     # Retrieve AWS credentials from local config
@@ -364,36 +363,13 @@ def update_tfe_credentials(
                 )
 
 
-def refresh_aws_credentials(okta_profile, aws_profile):
-    try:
-        subprocess.run(
-            f"okta-awscli --okta-profile {okta_profile} --profile {aws_profile}".split(),
-            stdout=subprocess.DEVNULL,
-            check=True,
-        )
-
-    except subprocess.CalledProcessError as e:
-        raise CLIException(f"AWS CLI error: {e.stderr.decode('utf-8')}") from e
-
-
 def cli():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--workspace-name", "-w", required=True, help="The TFE workspace to update."
     )
     parser.add_argument(
-        "--okta-profile",
-        "-o",
-        help=(
-            "The Okta Profile to use to refresh credentials if no "
-            "credentials are present for the specified AWS Profile or if "
-            "the credentials have expired."
-        ),
-    )
-    parser.add_argument(
-        "--no-refresh",
-        action="store_true",
-        help="Create or update AWS credentials variables without refreshing them first.",
+        "--workspace-name", "-w", required=True, help="The TFE workspace to update."
     )
     parser.add_argument(
         "--aws-profile",
@@ -423,25 +399,10 @@ def cli():
         print("--aws-profile or AWS_PROFILE env must be set.")
         return
 
-    if not args.no_refresh:
-        if not shutil.which("okta-awscli"):
-            print(
-                "okta-awscli not found. To refresh AWS credentials, install okta-awscli. To "
-                "proceed without refreshing credentials, pass --no-refresh."
-            )
-            return
-
-        if not args.okta_profile:
-            print("--okta-profile is required if --no-refresh is not present.")
-            return
-
-        refresh_aws_credentials(args.okta_profile, args.aws_profile)
-
     update_tfe_credentials(
         tf_api_token=args.tf_api_token,
         workspace_name=args.workspace_name,
         aws_profile=args.aws_profile,
-        okta_profile=args.okta_profile,
         prompt_for_confirmation=not args.yes,
     )
 
