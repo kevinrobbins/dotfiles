@@ -4,14 +4,11 @@ import argparse
 import dataclasses
 import os
 import requests  # TODO: replace with http.client or urllib
-import shutil
 import subprocess
 import typing as t
 
-
-AwsCredential = t.Literal[
-    "aws_access_key_id", "aws_secret_access_key", "aws_session_token"
-]
+verbose_logging: bool = False
+show_secrets: bool = False
 
 
 class CLIException(Exception):
@@ -264,49 +261,110 @@ def get_aws_config(profile: str, config_name: str) -> str:
     return value
 
 
-def update_tfe_credentials(
-    tf_api_token: str,
-    organization: str,
-    workspace_name: str,
-    aws_profile: str,
-    prompt_for_confirmation: bool = True,
-):
-    # Retrieve AWS credentials from local config
-    try:
-        aws_access_key_id = get_aws_config(aws_profile, "aws_access_key_id")
-        aws_secret_access_key = get_aws_config(aws_profile, "aws_secret_access_key")
-        aws_session_token = get_aws_config(aws_profile, "aws_session_token")
+@dataclasses.dataclass(frozen=True)
+class AWSCredentials:
+    profile: str
+    access_key_id: str
+    secret_access_key: str
+    session_token: str
 
-    except CLIException as e:
-        print(e)
-        return
+    @classmethod
+    def load(cls, profile: str):
+        return cls(
+            profile=profile,
+            access_key_id=get_aws_config(profile, "aws_access_key_id"),
+            secret_access_key=get_aws_config(profile, "aws_secret_access_key"),
+            session_token=get_aws_config(profile, "aws_session_token"))
+
+
+def get_primary_aws_credentials(profile: str) -> list[TFEVariable]:
+    primary_aws_credentials = AWSCredentials.load(profile)
 
     # TODO: Force credentials refresh?
-
-    aws_credential_defaults: t.List[TFEVariable] = [
+    primary_aws_credentials_variables: t.List[TFEVariable] = [
         TFEVariable(
             key="AWS_ACCESS_KEY_ID",
-            value=aws_access_key_id,
+            value=primary_aws_credentials.access_key_id,
             category="env",
             description="AWS provider credentials.",
         ),
         TFEVariable(
             key="AWS_SECRET_ACCESS_KEY",
-            value=aws_secret_access_key,
+            value=primary_aws_credentials.secret_access_key,
             category="env",
             description="AWS provider credentials.",
             sensitive=True,
         ),
         TFEVariable(
             key="AWS_SESSION_TOKEN",
-            value=aws_session_token,
+            value=primary_aws_credentials.session_token,
             category="env",
             description="AWS provider credentials.",
             sensitive=True,
         ),
     ]
 
-    # Hardcode nimbis-dev to prevent accidental use on production sites.
+    return primary_aws_credentials_variables
+
+
+def get_secondary_aws_credentials(profile: str) -> list[TFEVariable]:
+    """
+    GovCloud environments require two sets of credentials since some resources
+    must exist in a commercial account. Even though the only use case for this
+    right now is the GovCloud commercial account credentials, there is a
+    "secondary" abstraction, because referring to them as "commercial"
+    credentials feels like it could make using the CLI more confusing when
+    updating credentials for a commercial environment.
+
+    The secondary credentials are regular terraform variables with hardcoded
+    name (at least for pex-site). If we ever want to use this for a different
+    set of infrastructure, we can figure out a way to support different
+    variable names.
+    """
+    secondary_aws_credentials = AWSCredentials.load(profile)
+
+    # TODO: Force credentials refresh?
+    secondary_aws_credentials_variables: t.List[TFEVariable] = [
+        TFEVariable(
+            key="aws_commercial_access_key",
+            value=secondary_aws_credentials.access_key_id,
+            category="terraform",
+            description="Commercial AWS provider credentials.",
+        ),
+        TFEVariable(
+            key="aws_commercial_access_key",
+            value=secondary_aws_credentials.secret_access_key,
+            category="terraform",
+            description="Commercial AWS provider credentials.",
+            sensitive=True,
+        ),
+        TFEVariable(
+            key="aws_commercial_session_token",
+            value=secondary_aws_credentials.session_token,
+            category="terraform",
+            description="Commercial AWS provider credentials.",
+            sensitive=True,
+        ),
+    ]
+
+    return secondary_aws_credentials_variables
+
+def update_tfe_credentials(
+    tf_api_token: str,
+    organization: str,
+    workspace_name: str,
+    primary_aws_profile: str,
+    secondary_aws_profile: t.Optional[str],
+    prompt_for_confirmation: bool = True,
+):
+    primary_aws_credentials_variables = get_primary_aws_credentials(primary_aws_profile)
+
+    secondary_aws_credentials_variables = []
+    if secondary_aws_profile:
+        secondary_aws_credentials_variables = get_secondary_aws_credentials(secondary_aws_profile)
+
+    aws_credentials_variables = primary_aws_credentials_variables + secondary_aws_credentials_variables
+
     tfe = TFEClient(
         organization=organization, workspace_name=workspace_name, api_token=tf_api_token
     )
@@ -314,7 +372,7 @@ def update_tfe_credentials(
     # Determine which variables already exist. Existing variables will need to
     # be updated instead of created. If a variable has an id, we know it exists
     # and needs to be updated.
-    for aws_var in aws_credential_defaults:
+    for aws_var in aws_credentials_variables:
         for tf_var in tfe.variables:
             if aws_var.key == tf_var.key:
                 # Variable exists, so set id so we know to update the variable
@@ -330,12 +388,18 @@ def update_tfe_credentials(
             f"The following operations will be applied to the '{tfe.workspace_name}' workspace "
             f"in the '{tfe.organization}' organization:\n"
         )
-        for aws_var in aws_credential_defaults:
+        for aws_var in aws_credentials_variables:
             if aws_var.id:
-                msg += f"Update {aws_var.key}\n"
+                msg += f"Update {aws_var.category} variable {aws_var.key}"
+                if verbose_logging:
+                    msg += f' to "{"[REDACTED]" if aws_var.sensitive and not show_secrets else aws_var.value}"'
+                msg += "\n"
 
             else:
-                msg += f"Create {aws_var.key}\n"
+                msg += f"Create {aws_var.category} variable {aws_var.key}"
+                if verbose_logging:
+                    msg += f' with value "{"[REDACTED]" if aws_var.sensitive and not show_secrets else aws_var.value}"'
+                msg += "\n"
 
         msg += "\nConfirm? [Y/n]: "
 
@@ -348,7 +412,7 @@ def update_tfe_credentials(
     if user_confirmed:
         print("")  # Add newline for formatting purposes
 
-        for aws_var in aws_credential_defaults:
+        for aws_var in aws_credentials_variables:
             if aws_var.id:
                 tfe.update_variable(aws_var.id, attributes={"value": aws_var.value})
                 print(f"Updated {aws_var.key}.")
@@ -382,6 +446,13 @@ def cli():
         help="The AWS profile in which to look for credentials.",
     )
     parser.add_argument(
+        "--secondary-aws-profile",
+        "-s",
+        required=False,
+        help="If present the found credentials will be applied to the aws_commercial_* variables. "
+             "Used to update the commercial credentials for GovCloud environments."
+    )
+    parser.add_argument(
         "--tf-api-token",
         "-t",
         default=os.getenv("TF_API_TOKEN"),
@@ -390,8 +461,23 @@ def cli():
     parser.add_argument(
         "--yes",
         "-y",
+        required=False,
         action="store_true",
         help="If present, credentials will be updated without asking for confirmation",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        required=False,
+        action="store_true",
+        help="Log extra information. Sensitive values will be censored by default. Use "
+             "--show-secrets to reveal uncensored values."
+    )
+    parser.add_argument(
+        "--show-secrets",
+        required=False,
+        action="store_true",
+        help="Show secrets in log output."
     )
 
     args = parser.parse_args()
@@ -403,11 +489,16 @@ def cli():
         print("--aws-profile or AWS_PROFILE env must be set.")
         return
 
+    global verbose_logging, show_secrets
+    verbose_logging = args.verbose
+    show_secrets = args.show_secrets
+
     update_tfe_credentials(
         tf_api_token=args.tf_api_token,
         organization=args.organization,
         workspace_name=args.workspace_name,
-        aws_profile=args.aws_profile,
+        primary_aws_profile=args.aws_profile,
+        secondary_aws_profile=args.secondary_aws_profile,
         prompt_for_confirmation=not args.yes,
     )
 
